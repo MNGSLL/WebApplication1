@@ -37,51 +37,57 @@ function CalculateNewPointY(x, GradArray) {
 function Nerdamer(fn, GradArray, x) {
     var f = ChangeFunctionToL(fn, GradArray, x).toString();
     var pr = math.derivative(f, 'l');
-    var f1 = pr.toString()+"=0";    
-    var lambda = nerdamer.solve(f1, 'l');
-    var removeLeftSeparator = lambda.toString().replace(/[\[ ]/g, "");
-    var removeRightSeparator = removeLeftSeparator.toString().replace(/[\] ]/g, "");
-    var splitLambdaResults = removeRightSeparator.toString().split(",");
-    var newLambda1;
-    var newLambda2;
-    var timeResult1;
-    var timeResult2;
-    var fixResult1;
-    var fixResult2;
-    if (splitLambdaResults[0].includes("+")) {
-        var splitResult1 = splitLambdaResults[0].toString().split("+");
-        newLambda1 = splitResult1[1];
-    }
-    if (splitLambdaResults.length > 1) {
-        if (splitLambdaResults[1].includes("+")) {
-            var splitResult2 = splitLambdaResults[1].toString().split("+");
-            newLambda2 = splitResult2[1];
+    var f1 = pr.toString() + "=0";
+    if (f1.toString().includes("l")) {
+        var lambda = nerdamer.solve(f1, 'l');
+        var removeLeftSeparator = lambda.toString().replace(/[\[ ]/g, "");
+        var removeRightSeparator = removeLeftSeparator.toString().replace(/[\] ]/g, "");
+        var splitLambdaResults = removeRightSeparator.toString().split(",");
+        var newLambda1;
+        var newLambda2;
+        var timeResult1;
+        var timeResult2;
+        var fixResult1;
+        var fixResult2;
+        if (splitLambdaResults[0].includes("+")) {
+            var splitResult1 = splitLambdaResults[0].toString().split("+");
+            newLambda1 = splitResult1[1];
         }
+        if (splitLambdaResults.length > 1) {
+            if (splitLambdaResults[1].includes("+")) {
+                var splitResult2 = splitLambdaResults[1].toString().split("+");
+                newLambda2 = splitResult2[1];
+            }
 
+            else {
+                newLambda1 = splitLambdaResults[0];
+                newLambda2 = splitLambdaResults[1];
+
+            }
+        }
         else {
-            newLambda1 = splitLambdaResults[0];
-            newLambda2 = splitLambdaResults[1];
-
-        }
-    }
-    else {
             newLambda1 = splitLambdaResults[0];
             newLambda2 = splitLambdaResults[0];
         }
-    with (Math) {
-        timeResult1 = eval(newLambda1);
-        timeResult2 = eval(newLambda2);
-        fixResult1 = timeResult1.toFixed(4);
-        fixResult2 = timeResult2.toFixed(4);
+        with (Math) {
+            timeResult1 = eval(newLambda1);
+            timeResult2 = eval(newLambda2);
+            fixResult1 = timeResult1.toFixed(4);
+            fixResult2 = timeResult2.toFixed(4);
+        }
+        var timeResult;
+        if (fixResult1 > fixResult2) {
+            timeResult = fixResult1;
+        }
+        else {
+            timeResult = fixResult2;
+        }
+        var result = "(" + timeResult.toString() + ")";
+    } else {
+        alert("Уравнение не имеет действительных корней");
+        return;
     }
-    var timeResult;
-    if (fixResult1 > fixResult2) {
-        timeResult = fixResult1;
-    }
-    else {
-        timeResult = fixResult2;
-    }
-    var result = "(" + timeResult.toString() + ")";
+    
     return result;
 }
 function ReCalculateX(l, x) {
@@ -124,39 +130,41 @@ function CalculateMinPoint(obj) {
     while (h1 < h && condition == false) {
         //Calculate next value
         var g0 = g(x);
-        l = Nerdamer(fn, GradArray, x);
-        lambdaArray[count] = l;
-        x = ReCalculateX(l, x);
-        //Calculate next gradient
-        GradArray[0] = CalculateGradX(x);//Вычисляет градиент x
-        GradArray[1] = CalculateGradY(x);
-        gradArrX[count] = GradArray[0];
-        gradArrY[count] = GradArray[1];
-        //Calculate next norm
-        norm = CalculateNorm(GradArray, n, norm);
-        var g1 = g(x);
-        if (Math.abs(g1 - g0) < sigma && Math.sqrt(Math.pow((x[0] - x0[0]), 2) + Math.pow((x[1] - x0[1]), 2)) < alpha) {
-            condition = true;
-        }
-        x0[0] = x[0];
-        x0[1] = x[1];
-        xArray[count] = x[0];
-        yArray[count] = x[1];
-        funcXY[count] = g(x);
+        if (Nerdamer(fn, GradArray, x) == null) {
+            l = Nerdamer(fn, GradArray, x);
+            lambdaArray[count] = l;
+            x = ReCalculateX(l, x);
+            //Calculate next gradient
+            GradArray[0] = CalculateGradX(x);//Вычисляет градиент x
+            GradArray[1] = CalculateGradY(x);
+            gradArrX[count] = GradArray[0];
+            gradArrY[count] = GradArray[1];
+            //Calculate next norm
+            norm = CalculateNorm(GradArray, n, norm);
+            var g1 = g(x);
+            if (Math.abs(g1 - g0) < sigma && Math.sqrt(Math.pow((x[0] - x0[0]), 2) + Math.pow((x[1] - x0[1]), 2)) < alpha) {
+                condition = true;
+            }
+            x0[0] = x[0];
+            x0[1] = x[1];
+            xArray[count] = x[0];
+            yArray[count] = x[1];
+            funcXY[count] = g(x);
 
-        count++;
-        h1++;
+            count++;
+            h1++;
+        }
+        else { break;}
     }
     document.getElementById('gX').innerHTML = 'gradX';
     document.getElementById('gY').innerHTML = 'gradY';
     document.getElementById('lb').innerHTML = 'lambda';
     document.getElementById('fXY').innerHTML = 'funcXY';
-    for (i = 0; i < count; i++) {
-    
+    for (i = 0; i < count; i++) {   
         document.getElementById('gradArrX').innerHTML +=  gradArrX[i] + '</br>';
         document.getElementById('gradArrY').innerHTML +=  gradArrY[i] + '</br>';
         document.getElementById('lambdaArray').innerHTML +=  lambdaArray[i] + '</br>';
-        document.getElementById('funcXY').innerHTML += funcXY[i] +'&nbsp'+ '</br>';
+        document.getElementById('funcXY').innerHTML += funcXY[i] + '&nbsp' + '</br>';
     }
     document.getElementById('x0').innerHTML += 'Минимум в точке х = '+ x[0] + '</br>';
     document.getElementById('x1').innerHTML +='y = '+ x[1] + '</br>';
