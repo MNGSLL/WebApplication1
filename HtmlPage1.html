@@ -25,13 +25,14 @@
     <div id="third">
         <form name="forma11">
             Введите функцию:<input type="text" name="f" /><br />
-            Введите e1:<input type="text" size=20 name="e1" value="0.000001" onFocus="this.value=''" onBlur="if (this.value === '') { this.value = '0.001';}"> <br />
-            Введите e2:<input type="text" size=20 name="e2" value="0.000001" onFocus="this.value=''" onBlur="if (this.value === '') { this.value = '0.001';}"> <br />
-            Введите количество шагов:<input type="text" size=20 name="h" value="1" onFocus="this.value=''" onBlur="if (this.value === '') " /> <br />
+            Введите e1:<input type="text" size=20 name="e1" value="0.15" /> <br />
+            Введите e2:<input type="text" size=20 name="e2" value="0.15" /> <br />
+            Введите количество шагов:<input type="text" size=20 name="h" value="1" /> <br />
             Введите начальный вектор:<br />
-            Первая координата:<input type="text" size=10 name="x00" value="1" onFocus="this.value=''" onBlur="if (this.value === '') { this.value = '0';}"> <br />
-            Вторая координата:<input type="text" size=10 name="x01" value="0" onFocus="this.value=''" onBlur="if (this.value === '') { this.value = '0';}"> <br />
+            Первая координата:<input type="text" size=10 name="x00" value="0" /> <br />
+            Вторая координата:<input type="text" size=10 name="x01" value="0" /> <br />
             <input type="button" value="Определить" onClick=" CalculateMinPoint(forma11);">
+            <input type="button" value="Clear" onclick="clearBox()" />
 
             <div id="min"></div>
             <table>
@@ -40,20 +41,27 @@
                     <td><div class="gY" id="gY"></div></td>
                     <td><div class="lb" id="lb"></div></td>
                     <td><div class="fXY" id="fXY"></div></td>
+                    <td><div class="xArr" id="xArr"></div></td>
+                    <td><div class="yArr" id="yArr"></div></td>
+
                 </tr>
                 <tr>
                     <td><div class="gradArrX" id="gradArrX"></div></td>
                     <td><div class="gradArrY" id="gradArrY"></div></td>
                     <td><div class="lambdaArray" id="lambdaArray"></div></td>
                     <td><div class="funcXY" id="funcXY"></div></td>
+                    <td><div class="xArray" id="xArray"></div></td>
+                    <td><div class="yArray" id="yArray"></div></td>
+
                 </tr>
             </table>
             <div class="x0" id="x0"></div>
             <div class="x1" id="x1"></div>
             <div class="count0" id="count0"></div>
-
+            <div class="err" id="err"></div>
+            <div class="description" id="description"></div>
         </form>
-        <input type="button" value="Clear" onclick="clearBox()" />
+
     </div>
 </body>
 </html>
