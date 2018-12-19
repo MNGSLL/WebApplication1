@@ -1,8 +1,8 @@
 ﻿var fn;
-var sigma;
-var alpha;
-var h;
-var x = new Array(2);
+//var sigma;
+//var alpha;
+//var h;
+//var x = new Array(2);
 var fi;
 var gradArrX = [];
 var gradArrY = [];
@@ -10,13 +10,20 @@ var xArray = [];
 var yArray = [];
 var funcXY = [];
 var lambdaArray = [];
-var GradArray = [];
 var count;
 var newPointX;
 var newPointY;
-var antigradX;
-var antigradY;
-var condition = false;
+var antiGradientX=[];
+var antiGradientY=[];
+ var f1;
+ var recalculate=[];
+ var recalculatePoint=[];
+
+var res1;
+var res2;
+//var antigradX;
+//var antigradY;
+
 
 function ChangeFunctionToL(fn, GradArray, x) {
     var xL = "(" + CalculateNewPointX(x, GradArray) + ")";
@@ -26,19 +33,19 @@ function ChangeFunctionToL(fn, GradArray, x) {
     return new2;
 }
 function CalculateNewPointX(x, GradArray) {
-    antigradX = x[0].toString() + "-" + "(" + GradArray[0].toString() + ")";
+    var antigradX = x[0].toString() + "-" + "(" + GradArray[0].toString() + ")";
     newPointX = antigradX + "*l";
     return newPointX;
 }
 function CalculateNewPointY(x, GradArray) {
-    antigradY = x[1].toString() + "-" + "(" + GradArray[1].toString() + ")";
+    var antigradY = x[1].toString() + "-" + "(" + GradArray[1].toString() + ")";
     newPointY = antigradY + "*l";
     return newPointY;
 }
 function Nerdamer(fn, GradArray, x) {
     var f = ChangeFunctionToL(fn, GradArray, x).toString();
     var pr = math.derivative(f, 'l');
-    var f1 = pr.toString() + "=0";
+     f1 = pr.toString() + "=0";
     if (f1.toString().includes("l")) {
         var lambda = nerdamer.solve(f1, 'l');
         var removeLeftSeparator = lambda.toString().replace(/[\[ ]/g, "");
@@ -92,7 +99,7 @@ function Nerdamer(fn, GradArray, x) {
         document.getElementById('err').innerHTML = 'Error';
         return;
     }
-    
+
     return result;
 }
 function ReCalculateX(l, x) {
@@ -108,13 +115,15 @@ function ReCalculateX(l, x) {
 }
 function CalculateMinPoint(obj) {
     fn = obj.f.value;
-    sigma = obj.e1.value;
-    alpha = obj.e1.value;
-    h = obj.h.value-1;
+    let sigma = obj.e1.value;
+    let alpha = obj.e1.value;
+    let h = obj.h.value - 1;
+    let x = new Array(2);
     x[0] = obj.x00.value;
     x[1] = obj.x01.value;
-    var n = x.length;
-    var g0 = g(x);
+    let n = x.length;
+    let g0;
+    g0 = g(x);
     count = 1;
     funcXY[0] = g(x);
     var x0 = new Array(2);
@@ -122,23 +131,30 @@ function CalculateMinPoint(obj) {
     x0[1] = x[1];
     xArray[0] = x[0];
     yArray[0] = x[1];
+    let GradArray = [];
     GradArray[0] = CalculateGradX(x);//Вычисляет градиент x
-    GradArray[1] = CalculateGradY(x);
+    GradArray[1] = CalculateGradY(x);    
     gradArrX[0] = GradArray[0];
     gradArrY[0] = GradArray[1];//Вычисляет градиент y
-    //Вычисляет градиент y
+
     var l = 0;
     lambdaArray[0] = l;
-    var norm = CalculateNorm(GradArray, n);
-    
+    let norm = CalculateNorm(GradArray, n);
+    let condition = false;
     var h1 = 0;
     while (h1 < h && condition == false) {
         //Calculate next value
-        var g0 = g(x);
+         g0 = g(x);
         if (Nerdamer(fn, GradArray, x) != null) {
+
             l = Nerdamer(fn, GradArray, x);
             lambdaArray[count] = l;
             x = ReCalculateX(l, x);
+            antiGradientX[count-1]=newPointX.toString();            
+            antiGradientY[count-1]=newPointY.toString();
+            recalculate[count-1]=f1.toString();
+     
+
             //Calculate next gradient
             GradArray[0] = CalculateGradX(x);//Вычисляет градиент x
             GradArray[1] = CalculateGradY(x);
@@ -153,14 +169,39 @@ function CalculateMinPoint(obj) {
             x0[0] = x[0];
             x0[1] = x[1];
             xArray[count] = x0[0];
-            yArray[count] = x0[1];
+            yArray[count] = x0[1];        
             funcXY[count] = g(x);
 
             count++;
             h1++;
         }
-        else { break;}
+        else { break; }
     }
+
+
+   document.getElementById('Gradient').innerHTML ='Градиент функции по x : '+res1.toString()+'<br/>'+'Градиент функции по y : '+res2.toString();
+    document.getElementById('Step1').innerHTML+='Шаг:1'+'<br/>'+'Значение градиента функции в точке  X='+'('+GradX(xArray[0],yArray[0])+'; '
+   +GradY(xArray[0],yArray[0])+')'+'<br/>'+
+   '|▽f(X0)| <'+sigma+'<br/>'+
+   'Сделаем шаг вдоль направления антиградиента:'+'<br/>'+
+   'X1 = X0 - λ1*▽f(X0) =('+antiGradientX[0]+'; '+antiGradientY[0]+')<br/>'+
+    'Вычислим значение новой точки :'+'<br/>'+
+    'f(X1)= '+recalculate[0]+'<br/>'+
+    'λ1='+lambdaArray[1]+'<br/>'+'Полученная новая точка Х1=('+xArray[1]+';'+yArray[1]+')';   
+   
+    for (i = 1; i < count-1; i++) {  
+     document.getElementById('Step1').innerHTML+='<br/>'+'Шаг:'+(i+1)+'<br/>'+'Вычислим значение функции в точке f(X1)=('+funcXY[i].toFixed(4)+')'+
+    'Значение градиента функции в точке  X='+'('+GradX(xArray[i],yArray[i])+';'
+   +GradY(xArray[i],yArray[i])+')'+'<br/>'+
+   '|▽f(X0)| <'+sigma+'<br/>'+
+   'Сделаем шаг вдоль направления антиградиента:'+'<br/>'+
+   'X1 = X0 - λ1*▽f(X0) =('+antiGradientX[i]+'; '+antiGradientY[i]+')<br/>'+
+    'Вычислим значение функции в новой точке:'+'<br/>'+
+    'f(X1)= '+recalculate[i]+'<br/>'+
+    'λ1='+lambdaArray[i+1]+'Полученная новая точка Х1=('+xArray[i+1]+'; '+yArray[i+1]+')'+'<br/>';
+    }
+
+
     document.getElementById('gX').innerHTML = 'gradX';
     document.getElementById('gY').innerHTML = 'gradY';
     document.getElementById('lb').innerHTML = 'lambda';
@@ -168,19 +209,23 @@ function CalculateMinPoint(obj) {
     document.getElementById('xArr').innerHTML = 'X';
     document.getElementById('yArr').innerHTML = 'Y';
 
-    for (i = 0; i < count; i++) {   
-        document.getElementById('gradArrX').innerHTML +=  gradArrX[i] + '</br>';
-        document.getElementById('gradArrY').innerHTML +=  gradArrY[i] + '</br>';
-        document.getElementById('lambdaArray').innerHTML +=  lambdaArray[i] + '</br>';
-        document.getElementById('funcXY').innerHTML += funcXY[i] + '&nbsp' + '</br>';
-        document.getElementById('xArray').innerHTML += xArray[i] + '&nbsp' + '</br>';
-        document.getElementById('yArray').innerHTML += yArray[i] + '&nbsp' + '</br>';
-     
+    for (i = 0; i < count; i++) {      
+       document.getElementById('gradArrX').innerHTML += gradArrX[i] + '</br>';
+       document.getElementById('gradArrY').innerHTML += gradArrY[i] + '</br>';
+       document.getElementById('lambdaArray').innerHTML += lambdaArray[i] + '</br>';
+       document.getElementById('funcXY').innerHTML += funcXY[i] + '&nbsp' + '</br>';
+       document.getElementById('xArray').innerHTML += xArray[i] + '&nbsp' + '</br>';
+       document.getElementById('yArray').innerHTML += yArray[i] + '&nbsp' + '</br>';
+
     }
-    document.getElementById('x0').innerHTML += 'Минимум в точке х = '+ x[0] + '</br>';
-    document.getElementById('x1').innerHTML +='y = '+ x[1] + '</br>';
+ 
+
+
+
+    document.getElementById('x0').innerHTML += 'Минимум в точке х = ' + x[0] + '</br>';
+    document.getElementById('x1').innerHTML += 'y = ' + x[1] + '</br>';
     document.getElementById('count0').innerHTML += 'Количество шагов ' + count + '</br>';
-    document.getElementById('description').innerHTML += '1. Получаем градиент функции ' + gradArrX[0] + '</br>'+ 2. ;
+
 }
 function clearBox() {
     document.getElementById("gX").innerHTML = "";
@@ -193,22 +238,23 @@ function clearBox() {
     document.getElementById("funcXY").innerHTML = "";
     document.getElementById("x0").innerHTML = "";
     document.getElementById("x1").innerHTML = "";
-    document.getElementById("count0").innerHTML = "";  
-    document.getElementById("err").innerHTML = ""; 
-    document.getElementById("xArr").innerHTML = "";  
-    document.getElementById("yArr").innerHTML = "";  
+    document.getElementById("count0").innerHTML = "";
+    document.getElementById("err").innerHTML = "";
+    document.getElementById("xArr").innerHTML = "";
+    document.getElementById("yArr").innerHTML = "";
     document.getElementById("xArray").innerHTML = "";
-    document.getElementById("yArray").innerHTML = ""; 
+    document.getElementById("yArray").innerHTML = "";
 
 }
 function GradX(x, y) {
-    var res1 = 0;
-    res1 = math.derivative(fn, 'x').eval({ x: x, y: y });
-    return res1;
+     res1=math.derivative(fn, 'x');
+    var res11 = math.derivative(fn, 'x').eval({ x: x, y: y });
+    return res11;
 }
 function GradY(x, y) {
-    var res2 = math.derivative(fn, 'y').eval({ x: x, y: y });
-    return res2;
+    res2=math.derivative(fn, 'y');
+    var res22 = math.derivative(fn, 'y').eval({ x: x, y: y });
+    return res22;
 }
 function CalculateGradX(x) {
     return GradX(x[0], x[1]);
@@ -218,13 +264,7 @@ function CalculateGradY(x) {
     return GradY(x[0], x[1]);
     // body...
 }
-function GradientXY(x, h, fi, c) {
-    fi[0] = CalculateGrddX(x);
-    fi[1] = CalculateGrsdY(x);
-    gradArrX[c] = fi[0];
-    gradArrY[c] = fi[1];
-    return fi;
-}
+
 function CalculateNorm(GradArray, n, norm1) {
     norm1 = 0;
     for (var i = 0; i < n; ++i) {
@@ -233,29 +273,17 @@ function CalculateNorm(GradArray, n, norm1) {
     norm1 = Math.sqrt(norm1);
     return norm1;
 }
-function CalculatePointX(b, fi, n) {
-    //Calculate next value
-    for (var j = 0; j < n; ++j) {
-        x[j] -= b * fi[j];
+
+function getFunctionFromHtml(x, y) {  
+   
+    let scope = {
+        x: x,
+        y: y
     }
-    return x;
-}
-// Provides a rough calculation of gradient g(x).
-function fun(x, y) {
-    var res = 0;
-    with (Math) {
-        res = eval(fn);
-    }
+    let res = math.eval(fn, scope);
     return res;
 }
 // Method to provide function g(x).
 function g(x) { 
-
-    var g = fun(x[0], x[1]);
-    var res1;
-    with (Math) {
-        res1 = eval(g);
-    }
-    
-    return res1;
+    return getFunctionFromHtml(x[0],x[1]);
 }
